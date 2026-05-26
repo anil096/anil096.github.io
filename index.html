@@ -1,2 +1,697 @@
-<h1>Hello Anil</h1>
-<p>My first GitHub website</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>FitBot – AI Fitness Coach</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:#080810;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ONBOARDING */
+#onboarding{position:fixed;inset:0;background:#080810;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.ob-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:28px 22px;width:100%;max-width:420px;animation:fadeUp .5s cubic-bezier(.22,1,.36,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.ob-header{text-align:center;margin-bottom:20px}
+.ob-icon{font-size:44px;margin-bottom:10px}
+.ob-header h2{font-size:1.4rem;font-weight:800;margin-bottom:5px}
+.ob-header p{color:rgba(255,255,255,.45);font-size:.82rem}
+.step{display:none}.step.active{display:block}
+.step-label{font-size:.68rem;color:#6ee7f7;letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:12px}
+.step h3{font-size:1rem;font-weight:700;margin-bottom:14px}
+.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.opt{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 10px;cursor:pointer;transition:all .2s;text-align:center}
+.opt:hover,.opt:active{border-color:rgba(110,231,247,.4);background:rgba(110,231,247,.06)}
+.opt.selected{border-color:#6ee7f7;background:rgba(110,231,247,.1);color:#6ee7f7}
+.opt .oi{font-size:22px;margin-bottom:5px}
+.opt .ol{font-size:.78rem;font-weight:600}
+.opt .os{font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px}
+.opt.selected .os{color:rgba(110,231,247,.6)}
+.input-field{width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:11px 14px;color:#fff;font-family:inherit;font-size:.88rem;outline:none;transition:border .2s;margin-bottom:14px}
+.input-field:focus{border-color:rgba(110,231,247,.4)}
+.input-field::placeholder{color:rgba(255,255,255,.25)}
+.row2{display:flex;gap:8px;margin-bottom:14px}.row2 .input-field{margin-bottom:0}
+.ob-nav{display:flex;gap:8px;justify-content:flex-end}
+.ob-btn{padding:10px 20px;border-radius:12px;font-size:.83rem;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.ob-skip{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
+.ob-next{background:linear-gradient(135deg,#6ee7f7,#a78bfa);color:#080810}
+.ob-next:active{transform:scale(.97)}
+.progress{display:flex;gap:6px;justify-content:center;margin-bottom:22px}
+.prog-dot{width:26px;height:4px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .3s}
+.prog-dot.done{background:#6ee7f7}
+
+/* TOP BAR */
+.topbar{background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.07);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.brand-row{display:flex;align-items:center;gap:8px}
+.brand-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#6ee7f7,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:16px}
+.brand-name{font-size:.95rem;font-weight:700}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#6ee7f7;box-shadow:0 0 7px #6ee7f7;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* XP BAR */
+.xp-bar-wrap{background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.07);padding:8px 16px;flex-shrink:0}
+.xp-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.xp-level{font-size:.72rem;font-weight:700;color:#6ee7f7;letter-spacing:.5px}
+.xp-pts{font-size:.72rem;color:rgba(255,255,255,.4)}
+.xp-track{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,#6ee7f7,#a78bfa);border-radius:3px;transition:width .6s cubic-bezier(.22,1,.36,1)}
+
+/* TABS */
+.tabs{display:flex;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.tab{flex:1;padding:10px 4px;font-size:.72rem;font-weight:600;color:rgba(255,255,255,.35);cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.3px}
+.tab.active{color:#6ee7f7;border-bottom-color:#6ee7f7}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.panel.active{display:flex}
+.panel::-webkit-scrollbar{width:3px}
+.panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+
+/* CHAT */
+#chatPanel{padding:16px;gap:14px}
+.msg{display:flex;gap:10px;animation:slideUp .3s cubic-bezier(.22,1,.36,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.msg.user{flex-direction:row-reverse}
+.av{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px}
+.bot .av{background:linear-gradient(135deg,#6ee7f7,#a78bfa)}
+.user .av{background:linear-gradient(135deg,#f97316,#ec4899)}
+.bubble{max-width:78%;padding:11px 14px;border-radius:16px;font-size:.83rem;line-height:1.6}
+.bot .bubble{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-top-left-radius:4px;color:rgba(255,255,255,.88)}
+.user .bubble{background:linear-gradient(135deg,#f97316,#ec4899);border-top-right-radius:4px;color:#fff}
+.bubble strong{color:#6ee7f7}.user .bubble strong{color:#fff}
+.xp-pop{display:inline-block;background:rgba(110,231,247,.15);border:1px solid rgba(110,231,247,.3);color:#6ee7f7;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:6px}
+
+.typing-wrap{display:flex;gap:10px}
+.typing-bubble{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;border-top-left-radius:4px;padding:12px 14px;display:flex;gap:4px;align-items:center}
+.dot{width:6px;height:6px;background:#6ee7f7;border-radius:50%;animation:blink .9s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+/* INPUT */
+.input-wrap{padding:10px 14px 14px;border-top:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);flex-shrink:0}
+.input-box{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:5px 5px 5px 14px;transition:border .2s}
+.input-box:focus-within{border-color:rgba(110,231,247,.4)}
+#userInput{flex:1;background:transparent;border:none;color:#fff;font-size:.85rem;font-family:inherit;outline:none;padding:7px 0}
+#userInput::placeholder{color:rgba(255,255,255,.25)}
+.send-btn{width:38px;height:38px;border-radius:10px;border:none;background:linear-gradient(135deg,#6ee7f7,#a78bfa);color:#080810;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.send-btn:active{transform:scale(.93)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+#micBtn{width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+#micBtn.listening{background:rgba(255,80,80,.15);border-color:#ff5050;color:#ff5050;animation:micPulse 1s infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,80,80,.3)}50%{box-shadow:0 0 0 6px rgba(255,80,80,0)}}
+
+/* SENSOR PANEL */
+#sensorPanel{padding:16px;gap:12px}
+.sensor-header{font-size:.72rem;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;padding:4px 0}
+.sensor-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
+.sc-title{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:10px;font-weight:600}
+.sc-big{font-size:2.2rem;font-weight:800;line-height:1}
+.sc-unit{font-size:.75rem;color:rgba(255,255,255,.4);margin-top:3px}
+.sc-row{display:flex;gap:10px}
+.sc-row .sensor-card{flex:1}
+.activity-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(110,231,247,.08);border:1px solid rgba(110,231,247,.2);color:#6ee7f7;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:600;margin-top:8px}
+.sensor-btn{width:100%;padding:12px;border-radius:12px;border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.sensor-btn.start{background:linear-gradient(135deg,#6ee7f7,#a78bfa);color:#080810}
+.sensor-btn.stop{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);color:#ff8080}
+.sensor-btn:active{transform:scale(.97)}
+.perm-note{font-size:.75rem;color:rgba(255,255,255,.3);text-align:center;margin-top:8px;line-height:1.5}
+.location-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
+.loc-info{font-size:.82rem;color:rgba(255,255,255,.6);margin:8px 0;line-height:1.6}
+
+/* QUESTS PANEL */
+#questPanel{padding:16px;gap:12px}
+.quest-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px}
+.quest-card.done{border-color:rgba(110,231,247,.25);background:rgba(110,231,247,.04)}
+.quest-icon{font-size:28px;flex-shrink:0}
+.quest-info{flex:1}
+.quest-name{font-size:.85rem;font-weight:700;margin-bottom:3px}
+.quest-desc{font-size:.73rem;color:rgba(255,255,255,.4);margin-bottom:8px}
+.quest-prog-wrap{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.quest-prog{height:100%;background:linear-gradient(90deg,#6ee7f7,#a78bfa);border-radius:2px;transition:width .5s}
+.quest-xp{font-size:.7rem;font-weight:700;color:#6ee7f7;white-space:nowrap}
+.quest-done-badge{font-size:.7rem;color:#6ee7f7;font-weight:700;white-space:nowrap}
+.complete-btn{background:linear-gradient(135deg,#6ee7f7,#a78bfa);border:none;color:#080810;padding:7px 14px;border-radius:10px;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.complete-btn:active{transform:scale(.95)}
+
+/* PROFILE PANEL */
+#profilePanel{padding:16px;gap:12px}
+.prof-hero{background:linear-gradient(135deg,rgba(110,231,247,.08),rgba(167,139,250,.08));border:1px solid rgba(110,231,247,.15);border-radius:18px;padding:20px;text-align:center}
+.prof-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ec4899);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 10px}
+.prof-name{font-size:1.2rem;font-weight:800}
+.prof-goal{font-size:.78rem;color:#6ee7f7;margin-top:3px}
+.prof-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.ps{background:rgba(0,0,0,.2);border-radius:12px;padding:10px;text-align:center}
+.ps-val{font-size:1.1rem;font-weight:800}
+.ps-key{font-size:.65rem;color:rgba(255,255,255,.4);margin-top:2px}
+.badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.badge{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 6px;text-align:center;opacity:.35}
+.badge.earned{opacity:1;border-color:rgba(110,231,247,.3);background:rgba(110,231,247,.06)}
+.badge-icon{font-size:24px;margin-bottom:4px}
+.badge-name{font-size:.62rem;color:rgba(255,255,255,.5);font-weight:600}
+.badge.earned .badge-name{color:#6ee7f7}
+.edit-prof-btn{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);font-size:.83rem;font-weight:600;cursor:pointer;font-family:inherit}
+
+/* TOAST */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,#6ee7f7,#a78bfa);color:#080810;padding:10px 20px;border-radius:20px;font-size:.8rem;font-weight:700;opacity:0;transition:all .4s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+  <div class="ob-card">
+    <div class="ob-header">
+      <div class="ob-icon">⚡</div>
+      <h2>Welcome to FitBot</h2>
+      <p>Personalize your AI coach in a few steps</p>
+    </div>
+    <div class="progress">
+      <div class="prog-dot done" id="p1"></div>
+      <div class="prog-dot" id="p2"></div>
+      <div class="prog-dot" id="p3"></div>
+      <div class="prog-dot" id="p4"></div>
+    </div>
+    <div class="step active" id="s1">
+      <div class="step-label">Step 1 of 4 · About You</div>
+      <h3>What's your name & basic info?</h3>
+      <input class="input-field" id="userName" placeholder="Your name"/>
+      <div class="row2">
+        <input class="input-field" id="userAge" placeholder="Age" type="number"/>
+        <select class="input-field" id="userGender"><option value="" disabled selected>Gender</option><option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option></select>
+      </div>
+      <div class="row2">
+        <input class="input-field" id="userWeight" placeholder="Weight (kg)" type="number"/>
+        <input class="input-field" id="userHeight" placeholder="Height (cm)" type="number"/>
+      </div>
+      <div class="ob-nav"><button class="ob-btn ob-next" onclick="goStep(2)">Next →</button></div>
+    </div>
+    <div class="step" id="s2">
+      <div class="step-label">Step 2 of 4 · Goal</div>
+      <h3>What's your main fitness goal?</h3>
+      <div class="option-grid">
+        <div class="opt" onclick="sel(this,'goal','lose')"><div class="oi">🔥</div><div class="ol">Lose Weight</div></div>
+        <div class="opt" onclick="sel(this,'goal','muscle')"><div class="oi">💪</div><div class="ol">Build Muscle</div></div>
+        <div class="opt" onclick="sel(this,'goal','fit')"><div class="oi">🏃</div><div class="ol">Get Fit</div></div>
+        <div class="opt" onclick="sel(this,'goal','maintain')"><div class="oi">⚖️</div><div class="ol">Maintain</div></div>
+        <div class="opt" onclick="sel(this,'goal','flex')"><div class="oi">🧘</div><div class="ol">Flexibility</div></div>
+        <div class="opt" onclick="sel(this,'goal','sport')"><div class="oi">🏅</div><div class="ol">Sport Performance</div></div>
+      </div>
+      <div class="ob-nav"><button class="ob-btn ob-skip" onclick="goStep(3)">Skip</button><button class="ob-btn ob-next" onclick="goStep(3)">Next →</button></div>
+    </div>
+    <div class="step" id="s3">
+      <div class="step-label">Step 3 of 4 · Level</div>
+      <h3>Experience & availability?</h3>
+      <div class="option-grid">
+        <div class="opt" onclick="sel(this,'level','beginner')"><div class="oi">🌱</div><div class="ol">Beginner</div></div>
+        <div class="opt" onclick="sel(this,'level','intermediate')"><div class="oi">⚡</div><div class="ol">Intermediate</div></div>
+        <div class="opt" onclick="sel(this,'level','advanced')"><div class="oi">🚀</div><div class="ol">Advanced</div></div>
+        <div class="opt" onclick="sel(this,'level','athlete')"><div class="oi">🏆</div><div class="ol">Athlete</div></div>
+      </div>
+      <div class="option-grid">
+        <div class="opt" onclick="sel(this,'days','3')"><div class="oi">📅</div><div class="ol">3 days/week</div></div>
+        <div class="opt" onclick="sel(this,'days','4')"><div class="oi">📅</div><div class="ol">4 days/week</div></div>
+        <div class="opt" onclick="sel(this,'days','5')"><div class="oi">📅</div><div class="ol">5 days/week</div></div>
+        <div class="opt" onclick="sel(this,'days','6+')"><div class="oi">📅</div><div class="ol">6+ days/week</div></div>
+      </div>
+      <div class="ob-nav"><button class="ob-btn ob-skip" onclick="goStep(4)">Skip</button><button class="ob-btn ob-next" onclick="goStep(4)">Next →</button></div>
+    </div>
+    <div class="step" id="s4">
+      <div class="step-label">Step 4 of 4 · Preferences</div>
+      <h3>Equipment & diet?</h3>
+      <div class="option-grid">
+        <div class="opt" onclick="sel(this,'equip','gym')"><div class="oi">🏋️</div><div class="ol">Full Gym</div></div>
+        <div class="opt" onclick="sel(this,'equip','home')"><div class="oi">🏠</div><div class="ol">Home</div></div>
+        <div class="opt" onclick="sel(this,'equip','dumbbells')"><div class="oi">🎽</div><div class="ol">Dumbbells</div></div>
+        <div class="opt" onclick="sel(this,'equip','outdoor')"><div class="oi">🌳</div><div class="ol">Outdoors</div></div>
+      </div>
+      <div class="option-grid">
+        <div class="opt" onclick="sel(this,'diet','none')"><div class="oi">🍗</div><div class="ol">No Restriction</div></div>
+        <div class="opt" onclick="sel(this,'diet','veg')"><div class="oi">🥦</div><div class="ol">Vegetarian</div></div>
+        <div class="opt" onclick="sel(this,'diet','vegan')"><div class="oi">🌱</div><div class="ol">Vegan</div></div>
+        <div class="opt" onclick="sel(this,'diet','keto')"><div class="oi">🥑</div><div class="ol">Keto</div></div>
+      </div>
+      <div class="ob-nav"><button class="ob-btn ob-skip" onclick="finishOnboarding()">Skip</button><button class="ob-btn ob-next" onclick="finishOnboarding()">Start 🚀</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="topbar">
+  <div class="brand-row">
+    <div class="brand-icon">⚡</div>
+    <span class="brand-name">FitBot</span>
+    <div class="status-dot" style="margin-left:6px"></div>
+  </div>
+  <div style="font-size:.75rem;color:rgba(255,255,255,.4)" id="headerGreet"></div>
+</div>
+
+<div class="xp-bar-wrap">
+  <div class="xp-row">
+    <span class="xp-level" id="xpLevel">🌱 Rookie</span>
+    <span class="xp-pts" id="xpPts">0 / 100 XP</span>
+  </div>
+  <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('chat')">💬 Coach</div>
+  <div class="tab" onclick="showTab('sensor')">📱 Sensors</div>
+  <div class="tab" onclick="showTab('quest')">🎯 Quests</div>
+  <div class="tab" onclick="showTab('profile')">👤 Profile</div>
+</div>
+
+<!-- CHAT -->
+<div class="panel active" id="chatPanel"></div>
+<div class="input-wrap" id="chatInput">
+  <div class="input-box">
+    <button id="micBtn" onclick="toggleMic()">🎤</button>
+    <input id="userInput" type="text" placeholder="Ask your personal coach..."/>
+    <button class="send-btn" id="sendBtn" onclick="sendMsg()">↑</button>
+  </div>
+</div>
+
+<!-- SENSOR -->
+<div class="panel" id="sensorPanel">
+  <div class="sensor-header">Motion & Activity</div>
+  <div class="sc-row">
+    <div class="sensor-card"><div class="sc-title">👟 Steps</div><div class="sc-big" id="stepCount">0</div><div class="sc-unit">steps today</div></div>
+    <div class="sensor-card"><div class="sc-title">🔥 Calories</div><div class="sc-big" id="calBurned">0</div><div class="sc-unit">kcal burned</div></div>
+  </div>
+  <div class="sensor-card">
+    <div class="sc-title">🏃 Activity</div>
+    <div class="activity-badge" id="activityBadge">😴 Still</div>
+    <div style="margin-top:10px;font-size:.75rem;color:rgba(255,255,255,.35)" id="motionStatus">Motion sensor not started</div>
+  </div>
+  <button class="sensor-btn start" id="motionBtn" onclick="toggleMotion()">▶ Start Step Counter</button>
+  <p class="perm-note">📱 Works best on mobile — grant motion permission when prompted</p>
+
+  <div class="sensor-header" style="margin-top:4px">📍 GPS Location</div>
+  <div class="location-card">
+    <div class="sc-title">Current Location</div>
+    <div class="loc-info" id="locInfo">Location not fetched yet</div>
+    <button class="sensor-btn start" onclick="getLocation()" style="margin-top:8px">📍 Get My Location</button>
+  </div>
+
+  <div class="sensor-header" style="margin-top:4px">📡 Device Info</div>
+  <div class="sensor-card">
+    <div class="sc-title">Screen & Orientation</div>
+    <div class="loc-info" id="deviceInfo">—</div>
+  </div>
+</div>
+
+<!-- QUESTS -->
+<div class="panel" id="questPanel">
+  <div class="sensor-header">⚡ Daily Quests — Reset every day</div>
+  <div id="questList"></div>
+</div>
+
+<!-- PROFILE -->
+<div class="panel" id="profilePanel">
+  <div class="prof-hero">
+    <div class="prof-avatar">🙋</div>
+    <div class="prof-name" id="profName">—</div>
+    <div class="prof-goal" id="profGoal">—</div>
+    <div class="prof-stats">
+      <div class="ps"><div class="ps-val" id="statXP">0</div><div class="ps-key">Total XP</div></div>
+      <div class="ps"><div class="ps-val" id="statSteps">0</div><div class="ps-key">Steps</div></div>
+      <div class="ps"><div class="ps-val" id="statQuests">0</div><div class="ps-key">Quests Done</div></div>
+    </div>
+  </div>
+  <div class="sensor-header">🏅 Badges</div>
+  <div class="badge-grid" id="badgeGrid"></div>
+  <button class="edit-prof-btn" onclick="editProfile()">✏️ Edit Profile</button>
+</div>
+
+<script>
+// ── STATE ──
+let profile={}, selections={}, history=[], xp=0, steps=0, questsDone=0;
+let motionActive=false, listeningMic=false;
+let lastAcc={x:0,y:0,z:0}, stepThreshold=12, lastStep=0;
+let recognition=null;
+
+const LEVELS=[
+  {name:'🌱 Rookie',min:0,max:100},
+  {name:'⚡ Hustler',min:100,max:250},
+  {name:'🔥 Grinder',min:250,max:500},
+  {name:'💪 Warrior',min:500,max:900},
+  {name:'🚀 Champion',min:900,max:1500},
+  {name:'🏆 Legend',min:1500,max:99999}
+];
+
+const BADGES=[
+  {id:'first_msg',icon:'💬',name:'First Chat'},
+  {id:'steps_100',icon:'👟',name:'100 Steps'},
+  {id:'steps_500',icon:'🏃',name:'500 Steps'},
+  {id:'quest_1',icon:'🎯',name:'1 Quest'},
+  {id:'quest_5',icon:'⚡',name:'5 Quests'},
+  {id:'xp_100',icon:'🌟',name:'100 XP'},
+  {id:'xp_500',icon:'💫',name:'500 XP'},
+  {id:'voice',icon:'🎤',name:'Voice User'},
+];
+let earnedBadges=new Set();
+
+const QUESTS=[
+  {id:'q_msg3',icon:'💬',name:'Chat Starter',desc:'Send 3 messages to FitBot',target:3,key:'msgs',xp:30},
+  {id:'q_steps50',icon:'👟',name:'Step Up',desc:'Take 50 steps with sensor active',target:50,key:'steps',xp:40},
+  {id:'q_steps200',icon:'🏃',name:'On The Move',desc:'Reach 200 steps today',target:200,key:'steps',xp:80},
+  {id:'q_voice',icon:'🎤',name:'Voice Coach',desc:'Use voice input once',target:1,key:'voice',xp:25},
+  {id:'q_location',icon:'📍',name:'Check In',desc:'Fetch your GPS location',target:1,key:'location',xp:20},
+  {id:'q_msg10',icon:'🔥',name:'Fitness Fanatic',desc:'Send 10 messages to FitBot',target:10,key:'msgs',xp:60},
+];
+let questProgress={msgs:0,steps:0,voice:0,location:0};
+let completedQuests=new Set();
+let manualCompleted=new Set();
+
+// ── ONBOARDING ──
+function sel(el,key,val){
+  document.querySelectorAll(`.opt[onclick*="'${key}'"]`).forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected'); selections[key]=val;
+}
+function goStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  for(let i=1;i<=4;i++) document.getElementById('p'+i).classList.toggle('done',i<=n);
+}
+const goalLabels={lose:'🔥 Lose Weight',muscle:'💪 Build Muscle',fit:'🏃 Get Fit',maintain:'⚖️ Maintain',flex:'🧘 Flexibility',sport:'🏅 Sport Performance'};
+const levelLabels={beginner:'Beginner',intermediate:'Intermediate',advanced:'Advanced',athlete:'Athlete'};
+const equipLabels={gym:'Full Gym',home:'Home',dumbbells:'Dumbbells',outdoor:'Outdoors'};
+const dietLabels={none:'No Restriction',veg:'Vegetarian',vegan:'Vegan',keto:'Keto'};
+
+function finishOnboarding(){
+  profile={
+    name:document.getElementById('userName').value.trim()||'Champ',
+    age:document.getElementById('userAge').value||null,
+    gender:document.getElementById('userGender').value||null,
+    weight:document.getElementById('userWeight').value||null,
+    height:document.getElementById('userHeight').value||null,
+    goal:selections.goal||null,level:selections.level||null,
+    days:selections.days||null,equip:selections.equip||null,diet:selections.diet||null,
+  };
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('headerGreet').textContent=`Hey ${profile.name} 👋`;
+  initApp();
+}
+function editProfile(){document.getElementById('onboarding').style.display='flex';history.length=0;document.getElementById('chatPanel').innerHTML='';}
+
+// ── APP INIT ──
+function initApp(){
+  updateXP(0);
+  renderQuests();
+  renderProfile();
+  renderBadges();
+  updateDeviceInfo();
+  addBotMsg(`Hey ${profile.name}! 💥 I'm your personalized FitBot coach.\n\nYour goal: **${profile.goal?goalLabels[profile.goal]:'General Fitness'}**${profile.level?' · '+levelLabels[profile.level]:''}\n\nComplete **Daily Quests** to earn XP and level up! Check the 🎯 Quests tab to get started. What can I help you with today?`);
+}
+
+// ── TABS ──
+function showTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['chat','sensor','quest','profile'][i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(t+'Panel').classList.add('active');
+  document.getElementById('chatInput').style.display=t==='chat'?'block':'none';
+}
+
+// ── XP & LEVELS ──
+function addXP(amt,reason){
+  xp+=amt;
+  showToast(`+${amt} XP — ${reason}! ⚡`);
+  updateXP(amt);
+  checkBadges();
+  renderProfile();
+}
+function updateXP(){
+  const lvl=LEVELS.find(l=>xp>=l.min&&xp<l.max)||LEVELS[LEVELS.length-1];
+  const pct=Math.min(100,((xp-lvl.min)/(lvl.max-lvl.min))*100);
+  document.getElementById('xpLevel').textContent=lvl.name;
+  document.getElementById('xpPts').textContent=`${xp} / ${lvl.max} XP`;
+  document.getElementById('xpFill').style.width=pct+'%';
+  document.getElementById('statXP').textContent=xp;
+}
+
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── CHAT ──
+function buildSystem(){
+  const p=profile;
+  let s=`You are FitBot, a world-class personalized AI fitness coach.\n\nUser Profile:\nName: ${p.name}`;
+  if(p.age) s+=`\nAge: ${p.age}`;
+  if(p.gender) s+=`\nGender: ${p.gender}`;
+  if(p.weight) s+=`\nWeight: ${p.weight}kg`;
+  if(p.height) s+=`\nHeight: ${p.height}cm`;
+  if(p.goal) s+=`\nGoal: ${goalLabels[p.goal]}`;
+  if(p.level) s+=`\nFitness Level: ${levelLabels[p.level]}`;
+  if(p.days) s+=`\nTraining Days/Week: ${p.days}`;
+  if(p.equip) s+=`\nEquipment: ${equipLabels[p.equip]}`;
+  if(p.diet) s+=`\nDiet: ${dietLabels[p.diet]}`;
+  s+=`\n\nTailor EVERY response to their profile. Address by name occasionally. Be motivating and concise. Use **bold** for key terms and emojis. Safety first — recommend doctors for medical concerns.`;
+  return s;
+}
+
+function fmt(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
+
+function addBotMsg(text,xpAmt){
+  const p=document.getElementById('chatPanel');
+  const d=document.createElement('div');
+  d.className='msg bot';
+  let xpBadge=xpAmt?`<div class="xp-pop">+${xpAmt} XP earned!</div>`:'';
+  d.innerHTML=`<div class="av">⚡</div><div class="bubble">${fmt(text)}${xpBadge}</div>`;
+  p.appendChild(d); p.scrollTop=p.scrollHeight;
+}
+
+function showTyping(){
+  const p=document.getElementById('chatPanel');
+  const d=document.createElement('div');
+  d.className='typing-wrap';d.id='typing';
+  d.innerHTML=`<div class="av" style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#6ee7f7,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:14px">⚡</div><div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  p.appendChild(d);p.scrollTop=p.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+
+async function sendMsg(text){
+  const msg=text||document.getElementById('userInput').value.trim();
+  if(!msg)return;
+  document.getElementById('userInput').value='';
+  document.getElementById('sendBtn').disabled=true;
+  const p=document.getElementById('chatPanel');
+  const d=document.createElement('div');
+  d.className='msg user';
+  d.innerHTML=`<div class="av">🙋</div><div class="bubble">${msg}</div>`;
+  p.appendChild(d);p.scrollTop=p.scrollHeight;
+  history.push({role:'user',content:msg});
+
+  // Quest progress
+  questProgress.msgs++;
+  checkQuestAuto();
+  checkBadge('first_msg');
+
+  showTyping();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSystem(),messages:history})});
+    const data=await res.json();
+    const reply=data.content?.map(b=>b.text||'').join('')||'Sorry, no response.';
+    removeTyping();
+    const earned=10;
+    addBotMsg(reply,earned);
+    addXP(earned,'Message sent');
+    history.push({role:'assistant',content:reply});
+  }catch(e){removeTyping();addBotMsg('⚠️ Connection error. Try again.');}
+  document.getElementById('sendBtn').disabled=false;
+}
+
+document.getElementById('userInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg();});
+
+// ── MIC ──
+function toggleMic(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){showToast('🎤 Speech not supported in this browser');return;}
+  if(listeningMic){recognition&&recognition.stop();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.lang='en-US';recognition.interimResults=false;
+  recognition.onstart=()=>{listeningMic=true;document.getElementById('micBtn').classList.add('listening');document.getElementById('userInput').placeholder='Listening...';}
+  recognition.onresult=e=>{
+    const txt=e.results[0][0].transcript;
+    document.getElementById('userInput').value=txt;
+    questProgress.voice++;checkQuestAuto();checkBadge('voice');
+    sendMsg(txt);
+  };
+  recognition.onend=()=>{listeningMic=false;document.getElementById('micBtn').classList.remove('listening');document.getElementById('userInput').placeholder='Ask your personal coach...';};
+  recognition.start();
+}
+
+// ── MOTION / STEP COUNTER ──
+function toggleMotion(){
+  if(motionActive){stopMotion();return;}
+  if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+    DeviceMotionEvent.requestPermission().then(s=>{if(s==='granted')startMotion();else showToast('❌ Motion permission denied');}).catch(()=>showToast('❌ Could not request permission'));
+  } else {startMotion();}
+}
+
+function startMotion(){
+  motionActive=true;
+  document.getElementById('motionBtn').textContent='⏹ Stop Step Counter';
+  document.getElementById('motionBtn').className='sensor-btn stop';
+  document.getElementById('motionStatus').textContent='✅ Sensor active — move your phone!';
+  window.addEventListener('devicemotion',onMotion);
+  showToast('📱 Step counter started!');
+}
+
+function stopMotion(){
+  motionActive=false;
+  document.getElementById('motionBtn').textContent='▶ Start Step Counter';
+  document.getElementById('motionBtn').className='sensor-btn start';
+  document.getElementById('motionStatus').textContent='Sensor stopped.';
+  window.removeEventListener('devicemotion',onMotion);
+}
+
+function onMotion(e){
+  const acc=e.accelerationIncludingGravity;
+  if(!acc)return;
+  const {x,y,z}=acc;
+  const delta=Math.abs(x-lastAcc.x)+Math.abs(y-lastAcc.y)+Math.abs(z-lastAcc.z);
+  const now=Date.now();
+  if(delta>stepThreshold&&(now-lastStep)>350){
+    steps++;lastStep=now;
+    lastAcc={x,y,z};
+    updateSensorUI(delta);
+    questProgress.steps=steps;
+    checkQuestAuto();
+    checkBadge('steps_100');
+    checkBadge('steps_500');
+    document.getElementById('statSteps').textContent=steps;
+  } else {lastAcc={x,y,z};}
+}
+
+function updateSensorUI(delta){
+  document.getElementById('stepCount').textContent=steps;
+  const w=profile.weight||70;
+  document.getElementById('calBurned').textContent=Math.round(steps*0.04*(w/70));
+  const badge=document.getElementById('activityBadge');
+  let activity='😴 Still';
+  if(delta>30) activity='🏃 Running';
+  else if(delta>15) activity='🚶 Walking';
+  else if(delta>stepThreshold) activity='🤸 Moving';
+  badge.textContent=activity;
+}
+
+// ── LOCATION ──
+function getLocation(){
+  if(!navigator.geolocation){document.getElementById('locInfo').textContent='GPS not supported on this device.';return;}
+  document.getElementById('locInfo').textContent='📡 Fetching location...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude:lat,longitude:lon,accuracy}=pos.coords;
+    document.getElementById('locInfo').innerHTML=`📍 <strong>Lat:</strong> ${lat.toFixed(5)}<br>📍 <strong>Lon:</strong> ${lon.toFixed(5)}<br>🎯 Accuracy: ~${Math.round(accuracy)}m`;
+    questProgress.location++;checkQuestAuto();
+    showToast('📍 Location fetched!');
+    addXP(15,'Location checked');
+  },err=>{document.getElementById('locInfo').textContent='❌ Could not get location — please allow GPS access.';});
+}
+
+// ── DEVICE INFO ──
+function updateDeviceInfo(){
+  const info=`📱 Screen: ${window.screen.width}×${window.screen.height}<br>🌐 Lang: ${navigator.language}<br>🔋 ${navigator.connection?'Connection: '+navigator.connection.effectiveType:''}`;
+  document.getElementById('deviceInfo').innerHTML=info;
+  window.addEventListener('orientationchange',()=>{
+    document.getElementById('deviceInfo').innerHTML=`📱 Screen: ${window.screen.width}×${window.screen.height}<br>🔄 Orientation: ${screen.orientation?.type||'unknown'}<br>🌐 Lang: ${navigator.language}`;
+  });
+}
+
+// ── QUESTS ──
+function renderQuests(){
+  const list=document.getElementById('questList');
+  list.innerHTML='';
+  QUESTS.forEach(q=>{
+    const prog=Math.min(q.target,questProgress[q.key]||0);
+    const pct=(prog/q.target)*100;
+    const done=completedQuests.has(q.id)||manualCompleted.has(q.id);
+    const canComplete=prog>=q.target&&!done;
+    const card=document.createElement('div');
+    card.className='quest-card'+(done?' done':'');
+    card.innerHTML=`
+      <div class="quest-icon">${q.icon}</div>
+      <div class="quest-info">
+        <div class="quest-name">${q.name}</div>
+        <div class="quest-desc">${q.desc}</div>
+        <div class="quest-prog-wrap"><div class="quest-prog" style="width:${pct}%"></div></div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-top:4px">${prog} / ${q.target}</div>
+      </div>
+      <div>
+        ${done?`<div class="quest-done-badge">✅ Done</div>`
+          :canComplete?`<button class="complete-btn" onclick="completeQuest('${q.id}',${q.xp})">Claim +${q.xp}XP</button>`
+          :`<div class="quest-xp">+${q.xp} XP</div>`}
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function completeQuest(id,xpAmt){
+  manualCompleted.add(id);
+  questsDone++;
+  document.getElementById('statQuests').textContent=questsDone;
+  addXP(xpAmt,'Quest completed 🎯');
+  checkBadge('quest_1');checkBadge('quest_5');
+  renderQuests();
+}
+
+function checkQuestAuto(){
+  QUESTS.forEach(q=>{
+    if(!completedQuests.has(q.id)&&!manualCompleted.has(q.id)){
+      if((questProgress[q.key]||0)>=q.target){
+        // auto-unlock but require manual claim
+      }
+    }
+  });
+  renderQuests();
+}
+
+// ── BADGES ──
+const badgeConditions={
+  first_msg:()=>questProgress.msgs>=1,
+  steps_100:()=>steps>=100,
+  steps_500:()=>steps>=500,
+  quest_1:()=>questsDone>=1,
+  quest_5:()=>questsDone>=5,
+  xp_100:()=>xp>=100,
+  xp_500:()=>xp>=500,
+  voice:()=>questProgress.voice>=1,
+};
+
+function checkBadge(id){
+  if(!earnedBadges.has(id)&&badgeConditions[id]&&badgeConditions[id]()){
+    earnedBadges.add(id);
+    const b=BADGES.find(x=>x.id===id);
+    if(b){showToast(`🏅 Badge earned: ${b.icon} ${b.name}!`);renderBadges();}
+  }
+}
+function checkBadges(){Object.keys(badgeConditions).forEach(checkBadge);}
+
+function renderBadges(){
+  const g=document.getElementById('badgeGrid');
+  g.innerHTML='';
+  BADGES.forEach(b=>{
+    const d=document.createElement('div');
+    d.className='badge'+(earnedBadges.has(b.id)?' earned':'');
+    d.innerHTML=`<div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div>`;
+    g.appendChild(d);
+  });
+}
+
+function renderProfile(){
+  document.getElementById('profName').textContent=profile.name||'—';
+  document.getElementById('profGoal').textContent=profile.goal?goalLabels[profile.goal]:'General Fitness';
+  document.getElementById('statXP').textContent=xp;
+  document.getElementById('statSteps').textContent=steps;
+  document.getElementById('statQuests').textContent=questsDone;
+}
+</script>
+</body>
+</html>
