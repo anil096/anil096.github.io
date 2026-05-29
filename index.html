@@ -381,25 +381,58 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 <div class="save-ind" id="saveInd"></div>
 
 <script>
-// ══ STORAGE — works on GitHub Pages + Claude.ai ══
+// ══ PERSON STORE (localStorage-based, structured by user ID) ══
+function _getPeople(){ try{return JSON.parse(localStorage.getItem('fitbot_people'))||[];}catch(e){return[];} }
+function _setPeople(arr){ try{localStorage.setItem('fitbot_people',JSON.stringify(arr));}catch(e){} }
+
+function savePerson(person){ const a=_getPeople(); a.push(person); _setPeople(a); }
+function getAllPeople(){ return _getPeople(); }
+function getPersonById(id){ return _getPeople().find(p=>p.id===id)||null; }
+function updatePerson(id,data){ const a=_getPeople(); const i=a.findIndex(p=>p.id===id); if(i!==-1){a[i]={...a[i],...data};_setPeople(a);} }
+function deletePerson(id){ _setPeople(_getPeople().filter(p=>p.id!==id)); }
+function clearAllPeople(){ localStorage.removeItem('fitbot_people'); }
+
+// Generate or retrieve current user ID
+function getUserId(){
+  let id=localStorage.getItem('fitbot_uid');
+  if(!id){id='user_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);localStorage.setItem('fitbot_uid',id);}
+  return id;
+}
+const UID=getUserId();
+
+// ══ STORAGE — wraps person store, falls back to window.storage in Claude.ai ══
 async function sv(k,v){
   try{
-    const s=JSON.stringify(v);
-    if(window.storage) await window.storage.set(k,s);
-    else localStorage.setItem(k,s);
-  }catch(e){try{localStorage.setItem(k,JSON.stringify(v))}catch(e2){}}
+    if(k==='fb_v3'){
+      // Main data saved per user ID
+      if(getPersonById(UID)) updatePerson(UID,{data:v,updatedAt:new Date().toISOString()});
+      else savePerson({id:UID,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),data:v});
+    } else {
+      localStorage.setItem(k,JSON.stringify(v));
+    }
+    // also try window.storage for Claude.ai
+    if(window.storage) await window.storage.set(k,JSON.stringify(v));
+  }catch(e){}
 }
 async function ld(k){
   try{
-    if(window.storage){const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}
-    const r=localStorage.getItem(k);return r?JSON.parse(r):null;
-  }catch(e){
-    try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e2){return null;}
-  }
+    if(k==='fb_v3'){
+      const person=getPersonById(UID);
+      if(person&&person.data) return person.data;
+      // fallback to window.storage
+      if(window.storage){const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}
+      return null;
+    }
+    const r=localStorage.getItem(k);
+    return r?JSON.parse(r):null;
+  }catch(e){return null;}
 }
 async function dl(k){
-  try{if(window.storage)await window.storage.delete(k);else localStorage.removeItem(k);}
-  catch(e){try{localStorage.removeItem(k)}catch(e2){}}
+  try{
+    if(k==='fb_v3') deletePerson(UID);
+    else localStorage.removeItem(k);
+    if(window.storage) await window.storage.delete(k);
+  }catch(e){}
 }
 
 // ══ STATE ══
