@@ -381,10 +381,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 <div class="save-ind" id="saveInd"></div>
 
 <script>
-// ══ STORAGE ══
-async function sv(k,v){try{await window.storage.set(k,JSON.stringify(v))}catch(e){}}
-async function ld(k){try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null}catch(e){return null}}
-async function dl(k){try{await window.storage.delete(k)}catch(e){}}
+// ══ STORAGE — works on GitHub Pages + Claude.ai ══
+async function sv(k,v){
+  try{
+    const s=JSON.stringify(v);
+    if(window.storage) await window.storage.set(k,s);
+    else localStorage.setItem(k,s);
+  }catch(e){try{localStorage.setItem(k,JSON.stringify(v))}catch(e2){}}
+}
+async function ld(k){
+  try{
+    if(window.storage){const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}
+    const r=localStorage.getItem(k);return r?JSON.parse(r):null;
+  }catch(e){
+    try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e2){return null;}
+  }
+}
+async function dl(k){
+  try{if(window.storage)await window.storage.delete(k);else localStorage.removeItem(k);}
+  catch(e){try{localStorage.removeItem(k)}catch(e2){}}
+}
 
 // ══ STATE ══
 let P={}, SEL={}, HIST=[];
